@@ -1,12 +1,22 @@
 package com.datumdroid.android.ocr.simple;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.zip.GZIPInputStream;
+import java.net.URI;
+import java.util.List;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.cookie.Cookie;
+import org.apache.http.impl.client.AbstractHttpClient;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -40,6 +50,7 @@ public class SimpleAndroidOCRActivity extends Activity {
 	private static final String TAG = "SimpleAndroidOCR.java";
 
 	protected Button _button,_server;
+	private long startTime,finishTime;
 	// protected ImageView _image;
 	protected EditText _field,_time;
 	protected String _path;
@@ -109,7 +120,7 @@ public class SimpleAndroidOCRActivity extends Activity {
 			@Override
 			public void onClick(View v) {
 				// TODO Auto-generated method stub
-				
+				new SendImage().execute();
 			}
 		});
 		_button.setOnClickListener(new ButtonClickHandler());
@@ -158,11 +169,13 @@ public class SimpleAndroidOCRActivity extends Activity {
 	protected void onRestoreInstanceState(Bundle savedInstanceState) {
 		Log.i(TAG, "onRestoreInstanceState()");
 		if (savedInstanceState.getBoolean(SimpleAndroidOCRActivity.PHOTO_TAKEN)) {
+			
 			onPhotoTaken();
 		}
 	}
 
 	protected void onPhotoTaken() {
+		startTime = System.currentTimeMillis();
 		_taken = true;
 
 		BitmapFactory.Options options = new BitmapFactory.Options();
@@ -239,74 +252,37 @@ public class SimpleAndroidOCRActivity extends Activity {
 		}
 		
 		recognizedText = recognizedText.trim();
+		finishTime = System.currentTimeMillis();
 
 		if ( recognizedText.length() != 0 ) {
 			_field.setText(_field.getText().toString().length() == 0 ? recognizedText : _field.getText() + " " + recognizedText);
 			_field.setSelection(_field.getText().toString().length());
+			_time.setText(String.valueOf(finishTime-startTime));
 		}
 		
 		// Cycle done.
 	}
-	
-	public class GetNewCSRF extends AsyncTask<String,Void,String>{
+//================================SENDIMAGE================================================================	
+	public class SendImage extends AsyncTask<String,Void,String>{
 		@Override
 		protected String doInBackground(String... arg0) {
 			try{
-				HttpParams httpParameters = new BasicHttpParams();
-				HttpConnectionParams.setConnectionTimeout(httpParameters, 15000);
-				HttpConnectionParams.setSoTimeout(httpParameters, 15000);
-				HttpClient httpclient=new DefaultHttpClient(httpParameters);
 				
-				HttpGet getRequest=new HttpGet(URI.create(uri_login));
-				
-				HttpResponse getResponse=httpclient.execute(getRequest);
-				
-				System.out.println("GET CSRF status code:"+getResponse.getStatusLine().getStatusCode());
-				List<Cookie> getCookies=((AbstractHttpClient)httpclient).getCookieStore().getCookies();
-				getCSRFCookie=getCookies.get(0);
 				
 			}catch(Exception e){
 				Log.d("GET CSRF Exception", e.toString());
 			}
 			return null;
-				new LoginAsyncTask().execute("http://www.getmeashop.net/mobile/login/");
 				
-			//}
-		}
-		@Override
-		protected void onPreExecute() {
-			super.onPreExecute();
-			dialog.show();
-		}
-		protected void onProgressUpdate(Integer...values){
-			dialog.setProgress(values[0]);
 		}
 		
 
-}	}
-		@Override
-		protected void onPostExecute(String result) {
-			super.onPostExecute(result);
-			
-			//if(MainActivity.hasSession){
-		//		showWebView(webViewDash);
-			//}
-			//else{
-				new LoginAsyncTask().execute("http://www.getmeashop.net/mobile/login/");
-				
-			//}
-		}
-		@Override
-		protected void onPreExecute() {
-			super.onPreExecute();
-			dialog.show();
-		}
-		protected void onProgressUpdate(Integer...values){
-			dialog.setProgress(values[0]);
-		}
+}	
+		
+		
 		
 
-}
+
 	
 	// www.Gaut.am was here
 	// Thanks for reading!
