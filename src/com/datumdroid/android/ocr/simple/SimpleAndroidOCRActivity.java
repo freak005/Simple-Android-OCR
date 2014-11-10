@@ -16,6 +16,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.media.ExifInterface;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -38,9 +39,9 @@ public class SimpleAndroidOCRActivity extends Activity {
 
 	private static final String TAG = "SimpleAndroidOCR.java";
 
-	protected Button _button;
+	protected Button _button,_server;
 	// protected ImageView _image;
-	protected EditText _field;
+	protected EditText _field,_time;
 	protected String _path;
 	protected boolean _taken;
 
@@ -100,7 +101,17 @@ public class SimpleAndroidOCRActivity extends Activity {
 
 		// _image = (ImageView) findViewById(R.id.image);
 		_field = (EditText) findViewById(R.id.field);
+		_time =(EditText)findViewById(R.id.time);
 		_button = (Button) findViewById(R.id.button);
+		_server= (Button) findViewById(R.id.server);
+		_server.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
 		_button.setOnClickListener(new ButtonClickHandler());
 
 		_path = DATA_PATH + "/ocr.jpg";
@@ -236,6 +247,66 @@ public class SimpleAndroidOCRActivity extends Activity {
 		
 		// Cycle done.
 	}
+	
+	public class GetNewCSRF extends AsyncTask<String,Void,String>{
+		@Override
+		protected String doInBackground(String... arg0) {
+			try{
+				HttpParams httpParameters = new BasicHttpParams();
+				HttpConnectionParams.setConnectionTimeout(httpParameters, 15000);
+				HttpConnectionParams.setSoTimeout(httpParameters, 15000);
+				HttpClient httpclient=new DefaultHttpClient(httpParameters);
+				
+				HttpGet getRequest=new HttpGet(URI.create(uri_login));
+				
+				HttpResponse getResponse=httpclient.execute(getRequest);
+				
+				System.out.println("GET CSRF status code:"+getResponse.getStatusLine().getStatusCode());
+				List<Cookie> getCookies=((AbstractHttpClient)httpclient).getCookieStore().getCookies();
+				getCSRFCookie=getCookies.get(0);
+				
+			}catch(Exception e){
+				Log.d("GET CSRF Exception", e.toString());
+			}
+			return null;
+				new LoginAsyncTask().execute("http://www.getmeashop.net/mobile/login/");
+				
+			//}
+		}
+		@Override
+		protected void onPreExecute() {
+			super.onPreExecute();
+			dialog.show();
+		}
+		protected void onProgressUpdate(Integer...values){
+			dialog.setProgress(values[0]);
+		}
+		
+
+}	}
+		@Override
+		protected void onPostExecute(String result) {
+			super.onPostExecute(result);
+			
+			//if(MainActivity.hasSession){
+		//		showWebView(webViewDash);
+			//}
+			//else{
+				new LoginAsyncTask().execute("http://www.getmeashop.net/mobile/login/");
+				
+			//}
+		}
+		@Override
+		protected void onPreExecute() {
+			super.onPreExecute();
+			dialog.show();
+		}
+		protected void onProgressUpdate(Integer...values){
+			dialog.setProgress(values[0]);
+		}
+		
+
+}
 	
 	// www.Gaut.am was here
 	// Thanks for reading!
