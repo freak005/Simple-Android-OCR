@@ -22,9 +22,11 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.googlecode.tesseract.android.TessBaseAPI;
 
@@ -43,7 +45,7 @@ public class SimpleAndroidOCRActivity extends Activity {
 	protected Button _button, _server;
 	private long startTime, finishTime;
 	// protected ImageView _image;
-	protected EditText _field, _time;
+	protected EditText _field, _time,_url;
 	boolean b = false;
 	protected String _path;
 	protected boolean _taken;
@@ -54,6 +56,7 @@ public class SimpleAndroidOCRActivity extends Activity {
 	public void onCreate(Bundle savedInstanceState) {
 
 		String[] paths = new String[] { DATA_PATH, DATA_PATH + "tessdata/" };
+		
 
 		for (String path : paths) {
 			File dir = new File(path);
@@ -109,15 +112,19 @@ public class SimpleAndroidOCRActivity extends Activity {
 
 		// _image = (ImageView) findViewById(R.id.image);
 		_field = (EditText) findViewById(R.id.field);
+		
 		_time = (EditText) findViewById(R.id.time);
 		_button = (Button) findViewById(R.id.button);
 		_server = (Button) findViewById(R.id.server);
+		_url = (EditText)findViewById(R.id.url);
+		_url.setText("http://imgur.com/tesseract/");
 		_server.setOnClickListener(new View.OnClickListener() {
 
 			@Override
 			public void onClick(View v) {
 				// TODO Auto-generated method stub
 				b = true;
+				startCameraActivity();
 			}
 		});
 		_button.setOnClickListener(new ButtonClickHandler());
@@ -151,10 +158,12 @@ public class SimpleAndroidOCRActivity extends Activity {
 		Log.i(TAG, "resultCode: " + resultCode);
 
 		if (resultCode == -1) {
-			if (b)
+			if (!b){
 				onPhotoTaken();
-			else
+			}
+			else{
 				onPhotoUploadtoServer();
+			}
 		} else {
 			Log.v(TAG, "User cancelled");
 		}
@@ -170,16 +179,24 @@ public class SimpleAndroidOCRActivity extends Activity {
 		Log.i(TAG, "onRestoreInstanceState()");
 		if (savedInstanceState.getBoolean(SimpleAndroidOCRActivity.PHOTO_TAKEN)) {
 
-			onPhotoTaken();
+			if (!b){
+				onPhotoTaken();
+			}
+			else{
+				onPhotoUploadtoServer();
+			}
 		}
 	}
 
 	protected void onPhotoUploadtoServer() {
+		b=false;
+		Toast.makeText(this, "photo to be upload on server", Toast.LENGTH_SHORT);
+		long starttime = System.currentTimeMillis();
 		HttpURLConnection connection = null;
 		DataOutputStream outputStream = null;
 		// DataInputStream inputStream = null;
 		String pathToOurFile = _path;
-		String urlServer = "http://url";
+		String urlServer = _url.getText().toString();
 		String lineEnd = "\r\n";
 		String twoHyphens = "--";
 		String boundary = "*****";
@@ -225,6 +242,10 @@ public class SimpleAndroidOCRActivity extends Activity {
 			int serverResponseCode = connection.getResponseCode();
 			@SuppressWarnings("unused")
 			String serverResponseMessage = connection.getResponseMessage();
+			long finish = System.currentTimeMillis();
+			_field.setText(serverResponseCode);
+			_time.setText(String.valueOf(finish-starttime));
+			
 			fileInputStream.close();
 			outputStream.flush();
 			outputStream.close();
@@ -326,6 +347,13 @@ public class SimpleAndroidOCRActivity extends Activity {
 		// Cycle done.
 
 	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		// TODO Auto-generated method stub
+		return super.onCreateOptionsMenu(menu);
+	}
+	
 	// ================================SENDIMAGE================================================================
 	/*
 	 * public class SendImage extends AsyncTask<String,Void,String>{
